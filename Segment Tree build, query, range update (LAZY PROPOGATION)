@@ -1,0 +1,75 @@
+//Segment Tree build, query, range update (LAZY PROPOGATION)//
+class sgTree{
+private:
+    vector<int>seg;
+    vector<int>lazy;
+    vector<int>arr;
+public:
+    sgTree(vector<int>v){
+        int n=v.size();
+        arr=v;
+        seg.resize(4*n);
+        lazy.resize(4*n);
+        memset(lazy,0,sizeof(lazy));
+    }
+    void build(int index,int low,int high){
+        if(low==high){
+            seg[index]=arr[low];
+            return;
+        }
+        int mid=(low+high)/2;
+        build(2*index+1,low,mid);
+        build(2*index+2,mid+1,high);
+        seg[index]=min(seg[2*index+1],seg[2*index+2]);
+    }
+    void update(int index,int low,int high,int l,int r,int val){
+        if(lazy[index]!=0){
+            seg[index]+=(high-low+1)*lazy[index];
+            if(low!=high){
+                lazy[2*index+1]+=lazy[index];
+                lazy[2*index+2]+=lazy[index];
+            }
+            lazy[index]=0;
+        }
+        //NO OVERLAP//
+        if(l>high || r<low)
+            return;
+        //COMPLETE OVERLAP//
+        if(low>=l && high<=r){
+            seg[index]+=(high-low+1)*val;
+            if(low!=high){
+                lazy[2*index+1]+=val;
+                lazy[2*index+2]+=val;
+            }
+            return;
+        }
+        //PARTIAL OVERLAP//
+        int mid=(left+right)/2;
+        update(2*index+1,low,mid,l,r,val);
+        update(2*index+2,mid+1,high,l,r,val);
+        seg[index]=min(seg[2*index+1],seg[2*index+2]);
+    }
+    int query(int index,int low,int high,int l,int r){
+        if(lazy[index]!=0){
+            seg[index]+=(high-low+1)*lazy[index];
+            if(low!=high){
+                lazy[2*index+1]+=lazy[index];
+                lazy[2*index+2]+=lazy[index];
+            }
+            lazy[index]=0;
+        }
+        //NO OVERLAP//
+        if(l>high || r<low){
+            return(1e9);
+        }
+        //COMPLETE OVERLAP//
+        if(low>=l && high<=r){
+            return(seg[index]);
+        }
+        //PARTIAL OVERLAP//
+        int mid=(low+high)/2;
+        int left=query(2*index+1,low,mid,l,r);
+        int right=query(2*index+2,mid+1,high,l,r);
+        return(min(left,right));
+    }
+}
